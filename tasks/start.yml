@@ -1,0 +1,24 @@
+---
+- name: Start the Striim DBMS service
+  service:
+    name: striim-dbms
+    state: started
+    enabled: yes
+  # Only care to check the status if the state changed to 'started'
+  #notify:
+  #  - "pause"
+  #  - "check status"
+  #  - "assert running"
+  become: true
+
+- name: Start the Striim Node service
+  service:
+    name: striim-node
+    state: started
+    enabled: yes
+  # Only care to check the status if the state changed to 'started'
+  #notify:
+  #  - "pause"
+  #  - "check status"
+  #  - "assert running"
+  become: true

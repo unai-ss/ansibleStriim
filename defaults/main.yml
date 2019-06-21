@@ -1,0 +1,24 @@
+---
+
+postgresql_data_dir: /var/lib/pgsql/data/
+
+# Channel of striim to install
+striim_install_version: stable
+
+
+
+# The user and group striim should run under (should be set to striim unless needed otherwise)
+striim_runas_user: striim
+striim_runas_group: striim
+
+# Configuration Template
+striim_configuration_template: striim.conf.j2
+
+# Configuration Variables
+striim_tags:
+
+striim_dbms_s3_url: "https://test-striim-poc-22.s3-eu-west-1.amazonaws.com/striim-dbms-3.9.5-Linux.rpm"
+striim_node_s3_url: "https://test-striim-poc-22.s3-eu-west-1.amazonaws.com/striim-node-3.9.5-Linux.rpm"
+striim_samples_s3_url: "https://test-striim-poc-22.s3-eu-west-1.amazonaws.com/striim-samples-3.9.5-Linux.rpm"
+
+postgresql_bin_path: "/var/lib/pgsql/data/"

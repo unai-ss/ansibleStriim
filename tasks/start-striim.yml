@@ -1,0 +1,21 @@
+# Pause for 10 seconds.
+- pause:
+    seconds: 10
+
+# start striim dbms service
+- name: Enable service striim-dbms
+  service:
+    name: striim-dbms
+    state: started
+
+# start striim dbms service
+- name: Enable service striim-node
+  service:
+    name: striim-node
+    state: started
+
+# enable postgresql
+- name: Enable service striim node
+  service:
+    name: striim-node
+    enabled: yes

@@ -1,0 +1,84 @@
+# Create password Encryptor
+- name: Password Encryptor
+  #shell: "export PASSWD=$(/opt/striim/bin/passwordEncryptor.sh striim)"
+  shell: "/opt/striim/bin/passwordEncryptor.sh striim"
+  register: STRIIMPASS
+  become: yes
+
+- debug: msg="{{ STRIIMPASS }}"
+
+- set_fact: 
+    STRIIMPASS={{ STRIIMPASS.stdout }}
+
+# Configuracioon Striim/conf/startUP.properties
+
+- name: Replace startupProperties of Striim 1
+  replace:
+    path: /opt/striim/conf/startUp.properties
+    regexp: "^WAClusterName=$"
+    replace: "WAClusterName={{ lookup('env','HOSTNAME') }}"
+    backup: yes
+
+- name: Replace startupProperties of Striim 2
+  replace:
+    path: /opt/striim/conf/startUp.properties
+    regexp: "^WAClusterPassword=$"
+    #replace: "WAClusterPassword={{ lookup('env','PASSWD') }}"
+    replace: "WAClusterPassword={{ STRIIMPASS }}"
+    backup: yes
+
+- name: Replace startupProperties of Striim 3
+  replace:
+    path: /opt/striim/conf/startUp.properties
+    regexp: "^WAAdminPassword=$"
+    replace: "WAAdminPassword={{ STRIIMPASS }}"
+    backup: yes
+
+- name: Replace startupProperties of Striim 4
+  replace:
+    path: /opt/striim/conf/startUp.properties
+    regexp: "^CompanyName=$"
+    replace: "CompanyName= Orange España"
+    backup: yes
+
+- name: Replace startupProperties of Striim 5
+  replace:
+    path: /opt/striim/conf/startUp.properties
+    regexp: "^# MetaDataDb=$"
+    replace: " MetaDataDB=postgres"
+    backup: yes
+
+- name: Replace startupProperties of Striim 6
+  replace:
+    path: /opt/striim/conf/startUp.properties
+    regexp: "^# MetaDataRepositoryLocation=$"
+    replace: " MetaDataReposirotyLocation={{ lookup('env','HOSTNAME') }}:5432/striimrepo"
+    backup: yes
+
+- name: Replace startupProperties of Striim 7
+  replace:
+    path: /opt/striim/conf/startUp.properties
+    regexp: "^# MetaDataRepositoryDBname=$"
+    replace: " MetaDataReposirotyDBname=striimrepo"
+    backup: yes
+
+- name: Replace startupProperties of Striim 8
+  replace:
+    path: /opt/striim/conf/startUp.properties
+    regexp: "^# MetaDataRepositoryUname=$"
+    replace: " MetaDataReposirotyUname=striim"
+    backup: yes
+
+- name: Replace startupProperties of Striim 9
+  replace:
+    path: /opt/striim/conf/startUp.properties
+    regexp: "^# MetaDataRepositoryPass=$"
+    replace: " MetaDataRepositoryPass={{ STRIIMPASS }}"
+    backup: yes
+
+- name: Replace startupProperties of Striim 10
+  replace:
+    path: /opt/striim/conf/startUp.properties
+    regexp: "^# EnableJmx=false$"
+    replace: "EnableJmx=true"
+    backup: yes

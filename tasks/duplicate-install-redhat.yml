@@ -1,0 +1,208 @@
+---
+
+# this a postgresql install
+- name: install postgresql
+  package:
+    name: postgresql-jdbc.noarch
+    state: present
+
+- name: install postgresql-jdbc-javadoc.noarch
+  package:
+    name: postgresql-jdbc-javadoc.noarch
+    state: present
+
+- name: install postgresql-server
+  package:
+    name: postgresql-server
+    state: present
+
+- name: install postgresql-contrib
+  package:
+    name: postgresql-contrib
+
+# This uses a variable as this changes per distribution.
+- name: Download Striim DBMS packages S3 [RHEL/CentOS]
+  get_url:
+    url: "{{ striim_dbms_s3_url }}"
+    dest: "/opt/striim-dbms-3.9.5-Linux.rpm"
+  when: striim_dbms_s3_url is not defined or striim_dbms_s3_url == None
+
+- name: Install Striim packages S3 [RHEL/CentOS]
+  yum:
+    name: /opt/striim-dbms-3.9.5-Linux.rpm
+    state: present
+
+- name: Download Striim NODE packages S3 [RHEL/CentOS]
+  get_url:
+    url: "{{ striim_node_s3_url }}"
+    dest: "/opt/striim-node-3.9.5-Linux.rpm"
+  when: striim_node_s3_url is not defined or striim_node_s3_url == None
+
+- name: Install Striim packages S3 [RHEL/CentOS]
+  yum:
+    name: /opt/striim-node-3.9.5-Linux.rpm
+    state: present
+
+# Create password Encryptor
+- name: Password Encryptor
+  shell: export PASSWD=$(sudo /opt/striim/bin/passwordEncryptor.sh striim)
+
+
+
+
+
+- name: Ensure PostgreSQL database is initialized.
+  command: "{{ postgresql_bin_path }}/bin/postgresql initdb"
+  when: not pgdata_dir_version.stat.exists
+  become: true
+
+# Configuracioon Striim/conf/startUP.properties
+
+- replace:
+    path: /opt/striim/conf/startUp.properties
+    regexp: '^WAClusterName='
+    replace: 'WAClusterName='{{ lookup('env','HOSTNAME') }}''
+    backup: yes
+
+- replace:
+    path: /opt/striim/conf/startUp.properties
+    regexp: '^WAClusterPassword='
+    replace: 'WAClusterPassword='{{ lookup('env','PASSWD') }}''
+    backup: yes
+
+- replace:
+    path: /opt/striim/conf/startUp.properties
+    regexp: '^WAAdminPassword='
+    replace: 'WAAdminPassword='{{ lookup('env','PASSWD') }}''
+    backup: yes
+
+- replace:
+    path: /opt/striim/conf/startUp.properties
+    regexp: '^CompanyName='
+    replace: 'CompanyName= Orange España'
+    backup: yes
+
+- replace:
+    path: /opt/striim/conf/startUp.properties
+    regexp: '^# MetadataDb='
+    replace: '^# MetaDataDB= postgres'
+    backup: yes
+
+- replace:
+    path: /opt/striim/conf/startUp.properties
+    regexp: '^# MetadataRepositoryLocation='
+    replace: '^# MetaDataReposirotyLocation='{{ lookup('env','HOSTNAME') }}':5432/striimrepo'
+    backup: yes
+
+- replace:
+    path: /opt/striim/conf/startUp.properties
+    regexp: '^# MetadataRepositoryDBname='
+    replace: '^# MetaDataReposirotyDBname= striimrepo'
+    backup: yes
+
+- replace:
+    path: /opt/striim/conf/startUp.properties
+    regexp: '^# MetadataRepositoryUname='
+    replace: '^# MetaDataReposirotyUname= striim'
+    backup: yes
+
+- replace:
+    path: /opt/striim/conf/startUp.properties
+    regexp: '^# MetadataRepositoryPass='
+    replace: '^# MetaDataRepositoryPass= '{{ lookup('env','PASSWD') }}''
+    backup: yes
+
+- replace:
+    path: /opt/striim/conf/startUp.properties
+    regexp: '^# EnableJmx=false'
+    replace: '^# EnableJmx=true'
+    backup: yes
+
+# start postgresql
+- name: Enable service postgresql
+  service:
+    name: postgresql
+    enabled: yes
+
+- name: Enable service postgresql
+  service:
+    name: postgresql
+    state: started
+
+# config PostgreSQL
+- name: postgrsql config
+  shell: 'sudo -u postgres bash -c "psql -c \"CREATE USER striim WITH PASSWORD 'striim'";\"'
+
+# config PostgreSQL
+- name: postgrsql config
+  shell: 'sudo -u postgres bash -c "psql -c \"CREATE DATABASE striimrepo;\""'
+
+# config PostgreSQL
+- name: postgrsql config
+  shell: 'sudo -u postgres bash -c "psql -c \"GRANT ALL ON database striimrepo to striim;\"'
+
+# config PostgreSQL
+- name: postgresql config
+  shell: 'sudo -u striim bash -c "PGPASSWORD='striim' psql -U striim \"CREATE SCHEMA to striim;\""'
+
+# config PostgreSQL
+- name: postgresql config
+  shell: 'sudo -u striim bash -c "PGPASSWORD='striim' psql -U striim \"alter role striim set search_path to striim;\""'
+
+# config PostgreSQL
+- name: postgresql config
+  shell: 'sudo -u striim bash -c "PGPASSWORD='striim' psql -U striim striimrepo -c \"CREATE SCHEMA striim;\""'
+
+# Config PostgreSQL Config files
+- replace:
+    path: /var/lib/pgsql/data/pg_hba.conf
+    regexp: '^# IPv6 local connections:$'
+    insertbefore: 'host\tall\t\t'{{ lookup('env','HOSTNAME') }}'\t\tpassword'
+    backup: yes
+
+- replace:
+    path: /var/lib/pgsql/data/postgresql.conf
+    regexp: '^#listen_addresses = 'localhost''
+    insertbefore: 'listen_addresses = '*''
+    backup: yes
+# Reinicio PostgreSQL
+- name: Enable service postgresql
+  service:
+    name: postgresql
+    state: started
+# Pause for 10 seconds.
+- pause:
+    seconds: 10
+# start striim dbms service
+- name: Enable service striim-dbms
+  service:
+    name: striim-dbms
+    state: started
+
+# enable postgresql
+- name: Enable service striim
+  service:
+    name: striim-dbms
+    enabled: yes
+
+# Pause for 10 seconds.
+- pause:
+    seconds: 10
+
+# start striim dbms service
+- name: Enable service striim-dbms
+  service:
+    name: striim-dbms
+    state: started
+
+# start striim dbms service
+- name: Enable service striim-node
+  service:
+    name: striim-node
+    state: started
+
+# enable postgresql
+- name: Enable service striim node
+  service:
+    name: striim-node
+    enabled: yes

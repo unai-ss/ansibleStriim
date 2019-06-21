@@ -1,0 +1,23 @@
+---
+
+# Whether or not the playbook is run locally
+# This should only be set in the Vagrantfile and not modified elsewhere
+is_vagrant: no
+
+# If yes, service will be started. Will not be started if set to no.
+striim_start_service: yes
+striim_start_delay: 6
+
+# If yes, will overwrite the packaged configuration with an Asnible/jinja2 template
+striim_template_configuration: yes
+
+# Path for finding Striim data. Added for backwards-compatibility.
+striim_binary_path: /opt/striim/bin/striim
+striim_configuration_dir: /opt/striim
+
+
+#postgresql database user password
+#name={{ pg_user }} password={{ pg_password }}
+pg_user: striim
+pg_password: striim
+pg_database: striimrepo

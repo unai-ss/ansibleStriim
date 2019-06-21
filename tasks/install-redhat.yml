@@ -1,0 +1,10 @@
+---
+- include_tasks: install_postgresql.yml
+
+- include_tasks: install-striim.yml
+
+- include_tasks: configure-striim.yml
+
+- include_tasks: configure-postgresql.yml
+
+- include_tasks: start.yml

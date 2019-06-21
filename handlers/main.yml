@@ -1,0 +1,25 @@
+---
+# The order here matters
+- name: restart striim
+  service:
+    name: striim-dbms
+    state: restarted
+  become: true
+  when: striim-dbms_start_service
+
+- name: pause
+  pause:
+    seconds: "{{ striim_start_delay }}"
+  when: striim-dbms_start_service
+
+- name: restart striim node
+  service:
+    name: striim-node
+    state: restarted
+  become: true
+  when: striim-node_start_service
+
+- name: pause
+  pause:
+    seconds: "{{ striim_start_delay }}"
+  when: striim-node_start_service

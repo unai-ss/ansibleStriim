@@ -1,0 +1,23 @@
+
+# This uses a variable as this changes per distribution.
+- name: Download Striim DBMS packages S3 [RHEL/CentOS]
+  get_url:
+    url: "{{ striim_dbms_s3_url }}"
+    dest: "/opt/striim-dbms-3.9.5-Linux.rpm"
+ # when: striim_dbms_s3_url is not defined or striim_dbms_s3_url == None
+
+- name: Install Striim packages S3 [RHEL/CentOS]
+  yum:
+    name: /opt/striim-dbms-3.9.5-Linux.rpm
+    state: present
+
+- name: Download Striim NODE packages S3 [RHEL/CentOS]
+  get_url:
+    url: "{{ striim_node_s3_url }}"
+    dest: "/opt/striim-node-3.9.5-Linux.rpm"
+ # when: striim_node_s3_url is not defined or striim_node_s3_url == None
+
+- name: Install Striim packages S3 [RHEL/CentOS]
+  yum:
+    name: /opt/striim-node-3.9.5-Linux.rpm
+    state: present

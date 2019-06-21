@@ -1,0 +1,10 @@
+---
+- include: install.yml
+  tags: [striim, install]
+
+- include: configure.yml
+  tags: [striim, configure]
+
+- include: start.yml
+  tags: [striim, start]
+  when: striim_start_service

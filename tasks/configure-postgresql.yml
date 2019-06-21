@@ -1,0 +1,99 @@
+# start postgresql
+- name: Enable service postgresql
+  service:
+    name: postgresql
+    enabled: yes
+
+- name: Enable service postgresql
+  service:
+    name: postgresql
+    state: started
+
+- name: Create postgres user
+  #postgresql_user: name=striim password=striim
+  postgresql_user: name={{ pg_user }} password={{ pg_password }}
+  become: true
+  become_user: postgres
+
+- name: Create a new database with name "acme"
+  postgresql_db:
+    name: '{{ pg_database }}'
+  become: true
+  become_user: postgres
+
+- name: GRANT ALL PRIVILEGES ON DATABASE
+  postgresql_privs:
+    db: postgres
+    privs: ALL
+    type: database
+    obj: '{{ pg_database }}'
+    role: '{{ pg_user }}'
+  become: true
+  become_user: postgres
+
+- name: Create a new schema with name acme in test database
+  postgresql_schema:
+    database: '{{ pg_database }}'
+    name: striim
+    login_user: '{{ pg_user }}'
+    login_password: '{{ pg_password }}'
+  become: true
+  become_user: striim
+
+# config PostgreSQL
+- name: postgresql alter role
+  shell: 'bash -c "PGPASSWORD="striim" psql -U striim striimrepo \"alter role striim set search_path to striim;\""'
+  become: true
+  become_user: striim
+
+# config PostgreSQL
+- name: postgresql inject tables
+  shell: 'bash -c "PGPASSWORD="striim" psql -U striim striimrepo -f /opt/striim/conf/DefineMetadataReposPostgres.sql"'
+  become: true
+  become_user: striim
+
+
+#- name: Grant user replication pg_hba
+#  postgresql_pg_hba:
+#    dest: /var/lib/pgsql/data/pg_hba.conf
+#    contype: "host"
+#    users: "all"
+#    source: "{{ lookup('env','HOSTNAME') }}"
+#    databases: "all"
+#    method: "password"
+#  become: true
+
+
+- name: Ansible lineinfile insertbefore example
+  lineinfile:
+    dest: /var/lib/pgsql/data/pg_hba.conf
+    line: "host\tall\t\t{{ lookup('env','HOSTNAME') }}\t\tpassword"
+    insertbefore: '^# IPv6 local connections:$'
+
+
+## Config PostgreSQL Config files
+#- name: real name config
+#  replace:
+#    path: /var/lib/pgsql/data/pg_hba.conf
+#    regexp: '^# IPv6 local connections:$'
+#    before: "host\tall\t\t{{ lookup('env','HOSTNAME') }}\t\tpassword"
+#    backup: yes
+
+- name: Ansible lineinfile insertbefore example
+  lineinfile:
+    dest: /var/lib/pgsql/data/pg_hba.conf
+    line: "listen_addresses = \"*\""
+    insertbefore: '^#listen_addresses = \"localhost\"'
+
+
+#- name: real config 2
+#  replace:
+#    path: /var/lib/pgsql/data/postgresql.conf
+#    regexp: "^#listen_addresses = \"localhost\""
+#    before: "listen_addresses = \"*\""
+#    backup: yes
+
+- name: Enable service postgresql
+  service:
+    name: postgresql
+    state: started
